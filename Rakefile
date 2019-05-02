@@ -29,7 +29,7 @@ namespace "jenkins" do
     puts ""
   end
 
-    cmd2 = "rm -r -f #{pdir}/jenkins-test-data && "
+    cmd2 = "rm -r -f #{pdir}/DockerJenkinsData && "
     cmd2 += "git clone --depth 1 --single-branch -b #{branch} https://github.com/mathwro/DockerJenkinsData.git #{pdir}/DockerJenkinsData/ && "
     cmd2 += "docker pull jenkins/jenkins && "
     cmd2 += "docker build -t MobileJenkins . "
@@ -42,7 +42,7 @@ namespace "jenkins" do
     pdir = File.expand_path("..", Dir.pwd)
     port = ENV.fetch('port', '8081')
     dockerid = `docker ps | grep 'MobileJenkins' | awk '{ print $1 }'`.chomp
-    sh "docker run -d -t -v #{pdir}/DockerJenkinsData/jenkins_home:/var/jenkins_home -v #{pdir}/DockerJenkinsData/scripts:/var/jenkins_home/scripts -v /var/run/docker.sock:/var/run/docker.sock -p #{port}:8080 -p 50000:50000 MobileJenkins"
+    sh "docker run -d -t -v #{pdir}/DockerJenkinsData/jenkins_home:/var/jenkins_home -v #{pdir}/DockerJenkinsData/scripts:/var/jenkins_home/scripts -v /var/run/docker.sock:/var/run/docker.sock -p #{port}:8080 -p 50000:50000 -p 2375:2375 MobileJenkins"
     puts "Docker image ID: #{dockerid}"
     while dockerid.to_s.empty?
     	dockerid = `docker ps | grep 'MobileJenkins' | awk '{ print $1 }'`.chomp
@@ -50,7 +50,12 @@ namespace "jenkins" do
       break if !dockerid.empty?
     end
     
-    sh "docker exec -u root -it #{dockerid} chown jenkins /var/run/docker.sock"
+    if File.exist?("$HOME/var/run/docker.sock")
+      sh "docker exec -u root -it #{dockerid} chown jenkins /var/run/docker.sock"
+    else
+      sh "export DOCKER_HOST=localhost:2375"
+    end
+
     sh "docker exec -u root -it #{dockerid} chown -R jenkins /usr/local/bin"
     sh "docker exec -u root -it #{dockerid} chown -R jenkins /var/lib/gems"
     sh "docker exec -u root -it #{dockerid} chown -R jenkins /usr/lib/ruby"
