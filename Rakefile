@@ -32,7 +32,7 @@ namespace "jenkins" do
     cmd2 = "rm -r -f #{pdir}/DockerJenkinsData && "
     cmd2 += "git clone --depth 1 --single-branch -b #{branch} https://github.com/mathwro/DockerJenkinsData.git #{pdir}/DockerJenkinsData/ && "
     cmd2 += "docker pull jenkins/jenkins && "
-    cmd2 += "docker build -t MobileJenkins . "
+    cmd2 += "docker build -t mobilejenkins . "
     sh cmd2
     puts "Jenkins is now set up ready to run"
   end
@@ -41,11 +41,11 @@ namespace "jenkins" do
   task :start do
     pdir = File.expand_path("..", Dir.pwd)
     port = ENV.fetch('port', '8081')
-    dockerid = `docker ps | grep 'MobileJenkins' | awk '{ print $1 }'`.chomp
-    sh "docker run -d -t -v #{pdir}/DockerJenkinsData/jenkins_home:/var/jenkins_home -v #{pdir}/DockerJenkinsData/scripts:/var/jenkins_home/scripts -v /var/run/docker.sock:/var/run/docker.sock -p #{port}:8080 -p 50000:50000 -p 2375:2375 MobileJenkins"
+    dockerid = `docker ps | grep 'mobilejenkins' | awk '{ print $1 }'`.chomp
+    sh "docker run -d -t -v #{pdir}/DockerJenkinsData/jenkins_home:/var/jenkins_home -v #{pdir}/DockerJenkinsData/scripts:/var/jenkins_home/scripts -v /var/run/docker.sock:/var/run/docker.sock -p #{port}:8080 -p 50000:50000 -p 2375:2375 mobilejenkins"
     puts "Docker image ID: #{dockerid}"
     while dockerid.to_s.empty?
-    	dockerid = `docker ps | grep 'MobileJenkins' | awk '{ print $1 }'`.chomp
+    	dockerid = `docker ps | grep 'mobilejenkins' | awk '{ print $1 }'`.chomp
     	puts "Docker image ID: #{dockerid}"
       break if !dockerid.empty?
     end
@@ -68,11 +68,11 @@ namespace "jenkins" do
 
   desc "Jenkins shutdown"
   task :stop do
-    jenkinsid = `docker ps | grep 'MobileJenkins' | awk '{ print $1 }'`
+    jenkinsid = `docker ps | grep 'mobilejenkins' | awk '{ print $1 }'`
     seleniumid = `docker ps | grep 'selenium' | awk '{ print $1 }'`
     
     if !jenkinsid.to_s.empty?
-      sh "docker stop $(docker ps | grep 'MobileJenkins' | awk '{ print $1 }')"
+      sh "docker stop $(docker ps | grep 'mobilejenkins' | awk '{ print $1 }')"
     end
 
     if !seleniumid.to_s.empty?
